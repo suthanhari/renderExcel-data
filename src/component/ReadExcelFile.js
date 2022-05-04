@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 
 function ReadExcelFile(props) {
 
+
     const handleFile = async (e) => {
         const myFile = e.target.files[0];
         if (!myFile) return;
@@ -13,20 +14,32 @@ function ReadExcelFile(props) {
 
         // read xlsx data;
         const data = await myFile.arrayBuffer();
-        const mySheetData = readDataFromExcel(data)
-
+        const sheetData = readDataFromExcel(data)
 
         setFile(myFile);
         setFileName(myFile.name);
+        props.handleFileUploaded(sheetData);
+
+
+
 
         // error :props.handleFileUploaded is not a function
-        props.handleFileUploaded(mySheetData);
+
+
+
+
+
+
+
+
 
 
 
     }
+
     const readDataFromExcel = (data) => {
         const wb = XLSX.read(data)
+
         setSheetName(wb.SheetNames);
 
         const mySheetData = {}
@@ -35,7 +48,10 @@ function ReadExcelFile(props) {
             let sheetName = wb.SheetNames[i];
 
             const workSheet = wb.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(workSheet);
+            const jsonData = XLSX.utils.sheet_to_json(workSheet, {
+                blankrows: "",
+                header: 1
+            });
 
             mySheetData[sheetName] = jsonData;
 
@@ -53,7 +69,7 @@ function ReadExcelFile(props) {
     const [fileName, setFileName] = useState(null);
     const [excelFileError, setExcelFileError] = useState(null);
 
-    const acceptableFileName = ["xlsx", "xls"];
+    const acceptableFileName = ["xlsx", "xls", "csv"];
 
     const handleCheckFileName = (name) => {
         return acceptableFileName.includes(name.split(".").pop().toLowerCase());
@@ -64,6 +80,8 @@ function ReadExcelFile(props) {
         setFileName(null);
         setSheetData(null);
         setSheetName([]);
+        setExcelFileError(null);
+        // props.onFileUploaded(null);
         fileRef.current.value = "";
     }
     const fileRef = useRef();
@@ -80,7 +98,7 @@ function ReadExcelFile(props) {
             <div className='container'>
                 <div className='row d-flex justify-content-center mt-4 '>
                     <div className='col-md-6 d-flex flex-row'>
-                        <input className='form-control me-2' type={"file"} accept={"xlsx,xls"} multiple={false} onChange={(e) => handleFile(e)} ref={fileRef} />
+                        <input className='form-control me-2' type={"file"} accept={"xlsx,xls"} multiple={true} onChange={(e) => handleFile(e)} ref={fileRef} />
                         {
                             fileName && (
                                 <button type="button" className="btn-close mt-2" aria-label="Close" onClick={handleRemove}></button>
@@ -98,9 +116,9 @@ function ReadExcelFile(props) {
                         }
                         {
                             excelFileError && (
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <div className="alert alert-danger alert-dismissible fade show" role="alert">
                                     Invalid File Type! Valid Only for Excel files
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" onClick={handleRemove} aria-label="Close"></button>
+                                    <button type="button" className="btn-close" data-bs-dismiss="alert" onClick={handleRemove} aria-label="Close"></button>
                                 </div>
 
                             )
@@ -112,4 +130,4 @@ function ReadExcelFile(props) {
     )
 }
 
-export default ReadExcelFile
+export default ReadExcelFile;
